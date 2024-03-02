@@ -1,5 +1,6 @@
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
+import { Notify } from "notiflix/build/notiflix-notify-aio";
 
 function convertMs(ms) {
   const second = 1000;
@@ -19,6 +20,7 @@ function addLeadingZero(value) {
   return String(value).padStart(2, '0');
 }
 
+
 const datetimePicker = flatpickr("#datetime-picker", {
   enableTime: true,
   time_24hr: true,
@@ -26,12 +28,10 @@ const datetimePicker = flatpickr("#datetime-picker", {
   onClose(selectedDates) {
     const selectedDate = selectedDates[0];
     const currentDate = new Date();
-
     if (selectedDate <= currentDate) {
-      alert("Please choose a date in the future");
+      Notify.failure("Please choose a date in the future");
       return;
     }
-
     const startButton = document.querySelector('[data-start]');
     startButton.disabled = false;
   },
@@ -44,22 +44,24 @@ const minutesValue = document.querySelector('[data-minutes]');
 const secondsValue = document.querySelector('[data-seconds]');
 
 let countdownInterval;
+let countdownTime;
 
 startButton.addEventListener('click', () => {
   const endDate = datetimePicker.selectedDates[0];
   const currentDate = new Date();
 
   const difference = endDate.getTime() - currentDate.getTime();
+  countdownTime = difference;
 
   countdownInterval = setInterval(() => {
-    const remainingTime = convertMs(difference);
+    const remainingTime = convertMs(countdownTime);
 
     daysValue.textContent = addLeadingZero(remainingTime.days);
     hoursValue.textContent = addLeadingZero(remainingTime.hours);
     minutesValue.textContent = addLeadingZero(remainingTime.minutes);
     secondsValue.textContent = addLeadingZero(remainingTime.seconds);
 
-    if (difference <= 0) {
+    if (countdownTime <= 0) {
       clearInterval(countdownInterval);
       daysValue.textContent = '00';
       hoursValue.textContent = '00';
@@ -67,7 +69,7 @@ startButton.addEventListener('click', () => {
       secondsValue.textContent = '00';
       startButton.disabled = true;
     } else {
-      difference -= 1000;
+      countdownTime -= 1000;
     }
   }, 1000);
 });
